@@ -7,8 +7,6 @@ import type { Task } from "@/lib/workspace/types";
 
 import { hasRichTextContent } from "@/lib/workspace/rich-text";
 
-import { TaskReminderBadge } from "./TaskReminderBadge";
-
 export function TaskRightActions({
   task,
   onOpenNotes,
@@ -21,7 +19,6 @@ export function TaskRightActions({
 
   return (
     <div className="flex flex-shrink-0 items-center gap-1">
-      <TaskReminderBadge task={task} />
       <div
         className={clsx(
           "relative flex items-center gap-0.5 transition-opacity",

@@ -1,9 +1,8 @@
 "use client";
 
 import { CSS } from "@dnd-kit/utilities";
-import * as Popover from "@radix-ui/react-popover";
 import clsx from "clsx";
-import { CalendarPlus, Check, GripVertical, Trash2 } from "lucide-react";
+import { Check, GripVertical } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { defaultAnimateLayoutChanges, useSortable } from "@dnd-kit/sortable";
 
@@ -13,20 +12,13 @@ import { EditableTitle } from "@/features/workspace/EditableTitle";
 import { useFocusManager } from "@/features/workspace/focus-manager/FocusManagerContext";
 import type { DragData } from "@/features/workspace/drag/types";
 import { hasRichTextContent } from "@/lib/workspace/rich-text";
-import { hasTaskReminder } from "@/features/workspace/lib/task-reminders/reminder-helpers";
 import { useWorkspaceDispatch } from "@/features/workspace/WorkspaceContext";
 import { useWorkspaceUiStore } from "@/features/workspace/workspace-state/workspace-ui-store";
 import { useTaskOperations } from "./useTaskOperations";
 import { TaskRightActions } from "./TaskRightActions";
 import { TaskLeftActions } from "./TaskLeftActions";
 import { TaskNotesSheet } from "./TaskNotesSheet";
-import { TaskReminderMenu } from "./TaskReminderMenu";
 import { TASK_STRIKE_ANIMATION_MS } from "./task-strike-animation";
-import {
-  TASK_SWIPE_SNAP_MS,
-  TASK_SWIPE_TRAY_WIDTH_PX,
-  useTaskSwipeGesture,
-} from "./useTaskSwipeGesture";
 
 interface TaskDragPreviewProps {
   task: Task;
@@ -50,7 +42,6 @@ function isTaskFocusSurfaceTarget(
 export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
   const [isFocusedWithin, setIsFocusedWithin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isReminderOpen, setIsReminderOpen] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
   const checkTimeoutRef = useRef<number | null>(null);
@@ -120,13 +111,6 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
     }
     checkTimeoutRef.current = window.setTimeout(() => {
       const latestTask = taskRef.current;
-      if (hasTaskReminder(latestTask)) {
-        dispatch({
-          type: "clear_task_reminder",
-          id: latestTask.id,
-          taskListId: latestTask.taskListId,
-        });
-      }
       dispatch({
         type: "mark_task_done",
         id: latestTask.id,
@@ -163,17 +147,13 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
         });
 
         if (selectionStart === liveTitle.length) {
-          createTaskBelow({
-            task,
-            analytics: { source: "enter_key" },
-          });
+          createTaskBelow({ task });
           return;
         }
 
         splitTaskTitle({
           task,
           caretOffset: selectionStart,
-          analytics: { source: "enter_split" },
         });
         return;
       }
@@ -268,38 +248,6 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
     };
   }, []);
 
-  const swipe = useTaskSwipeGesture({
-    taskId: task.id,
-    rowRef: taskNodeRef,
-    isDragging,
-    isCompleting,
-    isReminderOpen,
-    onCommitDone: handleCheck,
-  });
-  const {
-    closeTray,
-    swipeOffset,
-    isSwipeDragging,
-    swipeTransition,
-    trayInteractive,
-    pastDoneThreshold,
-    doneProgress,
-    doneIconScale,
-    touchHandlers,
-  } = swipe;
-
-  const handleTrayDelete = useCallback(() => {
-    closeTray();
-    if (hasTaskReminder(task)) {
-      dispatch({
-        type: "clear_task_reminder",
-        id: task.id,
-        taskListId: task.taskListId,
-      });
-    }
-    dispatch({ type: "delete_task", id: task.id, taskListId: task.taskListId });
-  }, [closeTray, dispatch, task]);
-
   const sortableTransform = CSS.Translate.toString(transform);
 
   return (
@@ -321,98 +269,9 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
       onBlur={handleBlur}
       onTouchStart={(event) => {
         (listeners as { onTouchStart?: (e: React.TouchEvent<HTMLDivElement>) => void } | undefined)?.onTouchStart?.(event);
-        touchHandlers.onTouchStart(event);
       }}
-      onTouchMove={touchHandlers.onTouchMove}
-      onTouchEnd={touchHandlers.onTouchEnd}
-      onTouchCancel={touchHandlers.onTouchCancel}
     >
-      <div
-        aria-hidden="true"
-        className={clsx(
-          "pointer-events-none absolute inset-0 flex items-center overflow-hidden rounded-xl px-5 md:hidden",
-          pastDoneThreshold ? "bg-emerald-600" : "bg-emerald-600/90",
-        )}
-        style={{
-          opacity: doneProgress,
-          transition: isSwipeDragging
-            ? "background-color 120ms ease-out"
-            : `opacity ${TASK_SWIPE_SNAP_MS}ms ease-out, background-color 120ms ease-out`,
-        }}
-      >
-        <Check
-          size={22}
-          className="text-white"
-          style={{
-            transform: `scale(${doneIconScale})`,
-            transformOrigin: "center",
-            transition: isSwipeDragging
-              ? "transform 120ms ease-out"
-              : `transform ${TASK_SWIPE_SNAP_MS}ms ease-out`,
-          }}
-        />
-      </div>
-      <div
-        aria-hidden={trayInteractive ? undefined : "true"}
-        className="absolute inset-y-0 right-0 flex items-stretch overflow-hidden rounded-r-xl md:hidden"
-        style={{
-          width: TASK_SWIPE_TRAY_WIDTH_PX,
-          opacity: trayInteractive ? 1 : 0,
-          pointerEvents: trayInteractive ? "auto" : "none",
-          transition: isSwipeDragging
-            ? "none"
-            : `opacity ${TASK_SWIPE_SNAP_MS}ms ease-out`,
-        }}
-      >
-        <Popover.Root
-          open={isReminderOpen}
-          onOpenChange={(next) => {
-            setIsReminderOpen(next);
-            if (!next) closeTray();
-          }}
-        >
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              aria-label="Set reminder"
-              className="flex h-full w-1/2 items-center justify-center bg-accent-orange text-white"
-            >
-              <CalendarPlus size={20} strokeWidth={2} />
-            </button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              side="bottom"
-              align="end"
-              sideOffset={6}
-              className="z-30 w-[320px] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg"
-            >
-              <TaskReminderMenu
-                task={task}
-                onClose={() => {
-                  setIsReminderOpen(false);
-                  closeTray();
-                }}
-              />
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
-        <button
-          type="button"
-          aria-label="Delete task"
-          onClick={handleTrayDelete}
-          className="flex h-full w-1/2 items-center justify-center bg-destructive text-destructive-foreground"
-        >
-          <Trash2 size={20} strokeWidth={2} />
-        </button>
-      </div>
-      <div
-        className="rounded-xl border border-transparent bg-background transition-colors md:-ml-14 md:pl-14"
-        style={{
-          transform: `translateX(${swipeOffset}px)`,
-          transition: swipeTransition,
-        }}
-      >
+      <div className="rounded-xl border border-transparent bg-background transition-colors md:-ml-14 md:pl-14">
         <TaskLeftActions
           task={task}
           isFocusedWithin={isFocusedWithin}

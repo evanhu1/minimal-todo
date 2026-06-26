@@ -9,20 +9,17 @@ export interface WorkspaceNotification {
 
 interface WorkspaceUiState {
   notification: WorkspaceNotification | null;
-  openSwipeTrayTaskId: string | null;
   // True while a Notion-style "select all task titles" block selection is
   // active (second Cmd/Ctrl+A). Every task title renders a selection highlight
   // and Cmd/Ctrl+C copies all titles joined by newlines.
   isAllTitlesSelected: boolean;
   showNotification: (message: string) => void;
   dismissNotification: (id: number) => void;
-  setOpenSwipeTrayTaskId: (id: string | null) => void;
   setAllTitlesSelected: (selected: boolean) => void;
 }
 
 export const useWorkspaceUiStore = create<WorkspaceUiState>((set) => ({
   notification: null,
-  openSwipeTrayTaskId: null,
   isAllTitlesSelected: false,
   showNotification: (message) =>
     set({
@@ -33,10 +30,6 @@ export const useWorkspaceUiStore = create<WorkspaceUiState>((set) => ({
       notification:
         state.notification?.id === id ? null : state.notification,
     })),
-  setOpenSwipeTrayTaskId: (id) =>
-    set((state) =>
-      state.openSwipeTrayTaskId === id ? state : { openSwipeTrayTaskId: id },
-    ),
   setAllTitlesSelected: (selected) =>
     set((state) =>
       state.isAllTitlesSelected === selected

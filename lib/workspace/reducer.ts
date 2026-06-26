@@ -80,7 +80,6 @@ export type WorkspaceReducerAction =
     caretOffset: number;
     userId: string;
   }
-  | { type: "toggle_collapse"; id: string; taskListId: string }
   | { type: "toggle_task_list_collapse"; id: string }
   | { type: "move_task_list"; activeTaskListId: string; overTaskListId: string }
   | {
@@ -99,16 +98,6 @@ export type WorkspaceReducerAction =
   | { type: "delete_task"; id: string; taskListId: string }
   | { type: "mark_task_done"; id: string; taskListId: string }
   | { type: "restore_task"; id: string; taskListId: string }
-  | {
-    type: "set_task_reminder";
-    id: string;
-    taskListId: string;
-    scheduledDay: string | null;
-    scheduledStartIso: string | null;
-    scheduledEndIso: string | null;
-    scheduledTimeZone: string | null;
-  }
-  | { type: "clear_task_reminder"; id: string; taskListId: string }
   | { type: "delete_task_list"; id: string }
   | { type: "delete_backward"; id: string; taskListId: string }
   | { type: "delete_forward"; id: string; taskListId: string }
@@ -134,7 +123,6 @@ type UndoableActionType =
   | "create_task_below"
   | "create_task_above"
   | "split_task_title"
-  | "toggle_collapse"
   | "toggle_task_list_collapse"
   | "move_task_list"
   | "move_task_within_task_list"
@@ -152,7 +140,6 @@ const UNDOABLE_ACTIONS: ReadonlySet<UndoableActionType> = new Set([
   "create_task_below",
   "create_task_above",
   "split_task_title",
-  "toggle_collapse",
   "toggle_task_list_collapse",
   "move_task_list",
   "move_task_within_task_list",
@@ -494,19 +481,6 @@ function applyAction(
       return;
     }
 
-    case "toggle_collapse": {
-      const task = getTask(taskLists, action.taskListId, action.id);
-      if (!task) {
-        return;
-      }
-
-      state.workspaceData.taskLists[action.taskListId].tasks[action.id] = {
-        ...task,
-        collapsed: !task.collapsed,
-      };
-      return;
-    }
-
     case "toggle_task_list_collapse": {
       const taskList = taskLists[action.id];
       if (!taskList) {
@@ -627,34 +601,6 @@ function applyAction(
       if (!taskList.taskOrder.includes(action.id)) {
         taskList.taskOrder = [...taskList.taskOrder, action.id];
       }
-      return;
-    }
-
-    case "set_task_reminder": {
-      const task = getTask(taskLists, action.taskListId, action.id);
-      if (!task) return;
-
-      state.workspaceData.taskLists[action.taskListId].tasks[action.id] = {
-        ...task,
-        scheduledDay: action.scheduledDay,
-        scheduledStartIso: action.scheduledStartIso,
-        scheduledEndIso: action.scheduledEndIso,
-        scheduledTimeZone: action.scheduledTimeZone,
-      };
-      return;
-    }
-
-    case "clear_task_reminder": {
-      const task = getTask(taskLists, action.taskListId, action.id);
-      if (!task) return;
-
-      state.workspaceData.taskLists[action.taskListId].tasks[action.id] = {
-        ...task,
-        scheduledDay: null,
-        scheduledStartIso: null,
-        scheduledEndIso: null,
-        scheduledTimeZone: null,
-      };
       return;
     }
 

@@ -7,10 +7,9 @@ works, anywhere static files can be served.
 - ✅ Multiple lists with drag-to-reorder (lists and tasks)
 - ✅ Collapsible lists, inline title editing, keyboard navigation
 - ✅ Rich-text notes per task
-- ✅ Scheduled-time reminders with a date/time picker
 - ✅ Completed-tasks history with restore
 - ✅ Undo / redo
-- ✅ Light & dark, mobile-friendly (swipe actions, bottom sheets)
+- ✅ Light & dark, mobile-friendly (bottom sheets)
 - ✅ 100% static build — zero environment variables, zero services to provision
 
 ## One-click deploy
@@ -52,13 +51,6 @@ writes locally and persists (debounced) — that's the entire data flow.
 
 Everything stays in *your* browser's IndexedDB. It does not sync across devices,
 and clearing site data wipes it. Nothing is ever sent anywhere.
-
-### About reminders
-
-A static, backend-less app can't push a notification to a closed tab — that
-needs a server. Scheduled times here are shown and sorted on the task; for true
-background reminders you'd add a serverless cron + web-push (kept out of scope to
-preserve the zero-dependency, one-click deploy).
 
 ## Tech
 

@@ -7,17 +7,6 @@ import { useWorkspaceDispatch, useWorkspaceState } from "@/features/workspace/Wo
 
 const LOCAL_USER_ID = "local-user";
 
-export type TaskAddedSource =
-  | "list_add_button"
-  | "enter_key"
-  | "enter_split"
-  | "plus_button_above"
-  | "plus_button_below";
-
-interface TaskAddedAnalytics {
-  source: TaskAddedSource;
-}
-
 export function useTaskOperations() {
   const dispatch = useWorkspaceDispatch();
   const { taskLists } = useWorkspaceState();
@@ -28,7 +17,6 @@ export function useTaskOperations() {
       title?: string;
       body?: string;
       focus?: boolean;
-      analytics: TaskAddedAnalytics;
     }) => {
       if (!taskLists[input.taskListId]) return null;
 
@@ -49,7 +37,7 @@ export function useTaskOperations() {
   );
 
   const createTaskBelow = useCallback(
-    (input: { task: Task; analytics: TaskAddedAnalytics }) => {
+    (input: { task: Task }) => {
       const taskList = taskLists[input.task.taskListId];
       if (
         !taskList ||
@@ -74,7 +62,7 @@ export function useTaskOperations() {
   );
 
   const createTaskAbove = useCallback(
-    (input: { task: Task; analytics: TaskAddedAnalytics }) => {
+    (input: { task: Task }) => {
       const taskList = taskLists[input.task.taskListId];
       if (
         !taskList ||
@@ -99,7 +87,7 @@ export function useTaskOperations() {
   );
 
   const splitTaskTitle = useCallback(
-    (input: { task: Task; caretOffset: number; analytics: TaskAddedAnalytics }) => {
+    (input: { task: Task; caretOffset: number }) => {
       const taskList = taskLists[input.task.taskListId];
       if (
         !taskList ||

@@ -45,7 +45,6 @@ export function createTask(args: {
     taskListId,
     title,
     body,
-    collapsed: true,
     status: "active",
   };
 }

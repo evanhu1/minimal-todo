@@ -16,17 +16,8 @@ export interface Task {
   body: string;
   status: TaskStatus;
   completedAt?: Date | null;
-  collapsed: boolean;
-  parentTaskId?: string | null;
   /** Re-stamped whenever the task moves to a different list (createdAt does not). */
   addedAt?: Date;
-  scheduledEventId?: string | null;
-  scheduledCalendarId?: string | null;
-  /** Local ISO date (YYYY-MM-DD) of the scheduled day. */
-  scheduledDay?: string | null;
-  scheduledStartIso?: string | null;
-  scheduledEndIso?: string | null;
-  scheduledTimeZone?: string | null;
 }
 
 export interface WorkspaceData {

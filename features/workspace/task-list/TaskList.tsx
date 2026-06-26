@@ -84,7 +84,6 @@ export function TaskList({ taskListId }: { taskListId: string }) {
         taskListId,
         title,
         focus: true,
-        analytics: { source: "list_add_button" },
       });
     },
     [addTask, taskListId],

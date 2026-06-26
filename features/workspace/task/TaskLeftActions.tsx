@@ -54,15 +54,9 @@ export function TaskLeftActions({
       if (!canCreateTasks) return;
       const above = event.altKey;
       if (above) {
-        createTaskAbove({
-          task,
-          analytics: { source: "plus_button_above" },
-        });
+        createTaskAbove({ task });
       } else {
-        createTaskBelow({
-          task,
-          analytics: { source: "plus_button_below" },
-        });
+        createTaskBelow({ task });
       }
       event.currentTarget.blur();
     },
