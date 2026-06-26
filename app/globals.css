@@ -1,23 +1,285 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@source "../app/**/*.{js,ts,jsx,tsx}";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  color-scheme: light dark;
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #030213;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f4;
+  --secondary-foreground: #030213;
+  --muted: #f0ede8;
+  --muted-foreground: #78716c;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+  --accent-orange: #2563eb;
 }
 
-html,
-body {
-  height: 100%;
+.dark {
+  --background: #18181b;
+  --foreground: #fafafa;
+  --card: #232326;
+  --card-foreground: #fafafa;
+  --popover: #232326;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #2a2a2e;
+  --muted-foreground: #a1a1aa;
+  --accent: #2a2a2e;
+  --accent-foreground: #fafafa;
+  --destructive: oklch(0.637 0.237 25.331);
+  --destructive-foreground: #fafafa;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #232326;
+  --input-background: #1f1f22;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #71717a;
+  --accent-orange: #3b82f6;
 }
 
-body {
-  @apply bg-neutral-50 text-neutral-900 antialiased;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --color-accent-orange: var(--accent-orange);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
   body {
-    @apply bg-neutral-950 text-neutral-100;
+    @apply bg-background text-foreground;
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4,
+  label,
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
   }
 }
 
-/* Hide the native datetime-local picker indicator inconsistency across browsers
-   is fine to leave default; no custom rules needed. */
+/* Thin, theme-aware scrollbar that replaces the chunky OS default on scroll
+   containers (e.g. the Profile sheet body). Track is transparent; the thumb
+   uses the muted-foreground tint and brightens on hover. */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 40%, transparent)
+    transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--muted-foreground) 65%, transparent);
+}
+
+/* Tiptap editor styles */
+.tiptap-editor {
+  outline: none;
+}
+
+.tiptap-editor p {
+  margin: 0;
+}
+
+.tiptap-editor p + p,
+.tiptap-editor ul + p,
+.tiptap-editor ol + p {
+  margin-top: 0.875rem;
+}
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.25rem;
+  margin: 0.25rem 0 0.875rem;
+}
+
+.tiptap-editor ul {
+  list-style-type: disc;
+}
+
+.tiptap-editor ol {
+  list-style-type: decimal;
+}
+
+.tiptap-editor li {
+  margin: 0.125rem 0;
+}
+
+.tiptap-editor a {
+  color: LinkText;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.dark .tiptap-editor a {
+  color: var(--accent-orange);
+}
+
+.tiptap-editor a:hover {
+  opacity: 0.8;
+}
+
+.tiptap-editor strong {
+  font-weight: 600;
+}
+
+.tiptap-editor p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.task-strike-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.7em;
+  height: 1.5px;
+  background-color: currentColor;
+  opacity: 0.6;
+  transform-origin: left center;
+  transform: scaleX(0);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.task-completing {
+  animation: task-complete-fade 280ms ease-out 250ms forwards;
+  pointer-events: none;
+}
+
+.task-completing .task-strike-line {
+  animation: task-strike-draw 250ms ease-out forwards;
+}
+
+@media (pointer: coarse) {
+  .touch-no-text-callout {
+    -webkit-touch-callout: none;
+  }
+
+  /*
+   * Routes touches around an editable element so iOS Safari's text-selection
+   * magnifier doesn't appear during long-press. The element is restored to
+   * pointer-events: auto once it's focused (i.e., actually being edited).
+   * `user-select: none` is intentionally NOT used here — iOS ignores it on
+   * form elements like <textarea>/<input>.
+   */
+  .touch-defer-edit {
+    pointer-events: none;
+  }
+}
+
+@keyframes task-strike-draw {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes task-complete-fade {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
