@@ -4,6 +4,10 @@ A clean, self-hostable todo list. **No account, no database, no backend** — yo
 tasks live entirely in your browser (IndexedDB). Deploy it once and it just
 works, anywhere static files can be served.
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="minimal-todo — a multi-list task board" width="640">
+</p>
+
 - ✅ Multiple lists with drag-to-reorder (lists and tasks)
 - ✅ Collapsible lists, inline title editing, keyboard navigation
 - ✅ Rich-text notes per task
