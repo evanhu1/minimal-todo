@@ -1,0 +1,33 @@
+name: Verify task editing and gestures
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+permissions: {}
+jobs:
+  browsers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out the revision under test
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          git init -q .
+          # GITHUB_SHA is the branch commit on push and the proposed merge commit on a PR.
+          git -c credential.helper= fetch -q --no-tags --depth=1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$GITHUB_SHA"
+          git checkout -q --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          node --version
+          npm --version
+      - name: Install the locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build the default static app
+        run: npm run build
+      - name: Install Chromium and WebKit
+        run: ./node_modules/.bin/playwright install --with-deps chromium webkit
+      - name: Test both modes against IndexedDB
+        run: npm run test:interactions -- --workers=2

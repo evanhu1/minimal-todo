@@ -253,17 +253,6 @@
   .touch-no-text-callout {
     -webkit-touch-callout: none;
   }
-
-  /*
-   * Routes touches around an editable element so iOS Safari's text-selection
-   * magnifier doesn't appear during long-press. The element is restored to
-   * pointer-events: auto once it's focused (i.e., actually being edited).
-   * `user-select: none` is intentionally NOT used here — iOS ignores it on
-   * form elements like <textarea>/<input>.
-   */
-  .touch-defer-edit {
-    pointer-events: none;
-  }
 }
 
 @keyframes task-strike-draw {

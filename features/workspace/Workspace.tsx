@@ -9,8 +9,17 @@ import { useWorkspaceDispatch, useWorkspaceState } from "./WorkspaceContext";
 import { useWorkspaceUiStore } from "./workspace-state/workspace-ui-store";
 import { WorkspaceHeader } from "./header/WorkspaceHeader";
 import { WorkspaceNotification } from "./ui/WorkspaceNotification";
+import { EnhancedInteractionsContext } from "./EditableTitle";
 
-export function TodosWorkspace() {
+export function TodosWorkspace({ enhancedInteractions = false }: { enhancedInteractions?: boolean }) {
+  return (
+    <EnhancedInteractionsContext.Provider value={enhancedInteractions}>
+      <WorkspaceBoard />
+    </EnhancedInteractionsContext.Provider>
+  );
+}
+
+function WorkspaceBoard() {
   const dispatch = useWorkspaceDispatch();
   const { canRedo, canUndo, taskListOrder, taskLists } =
     useWorkspaceState();

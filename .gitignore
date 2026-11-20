@@ -8,6 +8,9 @@
 /out/
 next-env.d.ts
 
+# browser tests
+/test-results/
+
 # production
 /build
 

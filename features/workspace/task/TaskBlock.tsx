@@ -3,12 +3,13 @@
 import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
 import { Check, GripVertical } from "lucide-react";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { defaultAnimateLayoutChanges, useSortable } from "@dnd-kit/sortable";
 
 import type { Task } from "@/lib/workspace/types";
 
-import { EditableTitle } from "@/features/workspace/EditableTitle";
+import { canStartRowDrag } from "@/features/todo-ui/gestures";
+import { EditableTitle, EnhancedInteractionsContext } from "@/features/workspace/EditableTitle";
 import { useFocusManager } from "@/features/workspace/focus-manager/FocusManagerContext";
 import type { DragData } from "@/features/workspace/drag/types";
 import { hasRichTextContent } from "@/lib/workspace/rich-text";
@@ -40,6 +41,7 @@ function isTaskFocusSurfaceTarget(
 }
 
 export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
+  const enhanced = useContext(EnhancedInteractionsContext);
   const [isFocusedWithin, setIsFocusedWithin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -54,7 +56,7 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
     taskRef.current = task;
   });
   const dispatch = useWorkspaceDispatch();
-  const { canCreateTasks, createTaskBelow, splitTaskTitle } = useTaskOperations();
+  const { canCreateTasks, createTaskAbove, createTaskBelow, splitTaskTitle } = useTaskOperations();
   const { moveTitleFocus } = useFocusManager();
   const {
     attributes,
@@ -119,6 +121,18 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
     }, TASK_STRIKE_ANIMATION_MS);
   }, [dispatch, isCompleting]);
 
+  const submitTitle = useCallback((title: string, caret: number) => {
+    if (!canCreateTasks) return;
+    handleUpdateTitle(title);
+    if (caret === title.length) {
+      createTaskBelow({ task });
+    } else if (enhanced && caret === 0) {
+      createTaskAbove({ task });
+    } else {
+      splitTaskTitle({ task, caretOffset: caret });
+    }
+  }, [canCreateTasks, createTaskAbove, createTaskBelow, enhanced, handleUpdateTitle, splitTaskTitle, task]);
+
   const handleNameKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const el = nameRef.current;
@@ -129,34 +143,6 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
       const isCollapsedSelection = selectionStart === selectionEnd;
       const atStart = isCollapsedSelection && selectionStart === 0;
       const atEnd = isCollapsedSelection && selectionStart === liveTitle.length;
-
-      if (event.key === "Tab" && !event.shiftKey) {
-        event.preventDefault();
-        openNotes();
-        return;
-      }
-
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (!canCreateTasks) return;
-        dispatch({
-          type: "update_task_title",
-          id: task.id,
-          taskListId: task.taskListId,
-          title: liveTitle,
-        });
-
-        if (selectionStart === liveTitle.length) {
-          createTaskBelow({ task });
-          return;
-        }
-
-        splitTaskTitle({
-          task,
-          caretOffset: selectionStart,
-        });
-        return;
-      }
 
       if (event.key === "Backspace" && atStart) {
         if (liveTitle.length > 0 && bodyHasContent) {
@@ -215,12 +201,8 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
     },
     [
       bodyHasContent,
-      canCreateTasks,
-      createTaskBelow,
       dispatch,
       moveTitleFocus,
-      openNotes,
-      splitTaskTitle,
       task,
     ],
   );
@@ -268,7 +250,8 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
       onFocus={handleFocus}
       onBlur={handleBlur}
       onTouchStart={(event) => {
-        (listeners as { onTouchStart?: (e: React.TouchEvent<HTMLDivElement>) => void } | undefined)?.onTouchStart?.(event);
+        if (enhanced && !canStartRowDrag(event.currentTarget, event.target)) return;
+        listeners?.onTouchStart?.(event);
       }}
     >
       <div className="rounded-xl border border-transparent bg-background transition-colors md:-ml-14 md:pl-14">
@@ -302,7 +285,8 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
               <div
                 data-task-focus-surface="true"
                 className={clsx(
-                  "touch-no-text-callout relative flex min-w-0 flex-1 cursor-text flex-wrap items-center gap-x-1.5 rounded-[4px]",
+                  !enhanced && "touch-no-text-callout",
+                  "relative flex min-w-0 flex-1 cursor-text flex-wrap items-center gap-x-1.5 rounded-[4px]",
                   isAllTitlesSelected &&
                     "bg-[#007AFF]/20 dark:bg-accent-orange/20",
                 )}
@@ -329,6 +313,8 @@ export const TaskBlock = memo(function TaskBlock({ task }: { task: Task }) {
                   onUpdateText={handleUpdateTitle}
                   onMoveFocus={handleMoveFocus}
                   onKeyDown={handleNameKeyDown}
+                  onSubmit={submitTitle}
+                  onOpenNotes={openNotes}
                 />
               </div>
               <TaskRightActions task={task} onOpenNotes={openNotes} />
